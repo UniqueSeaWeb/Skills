@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" width="720" height="420">
+  <title id="t">Claude.ai の設定画面でスキルを有効にする手順（イメージ図）</title>
+  <desc id="d">設定の「機能」を開き、コード実行とファイル作成をオンにし、Skills 欄で使うスキルをオンにするか「スキルをアップロード」から ZIP を追加する。</desc>
+  <style>
+    text { font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif; fill: #1b2236; }
+    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .muted { fill: #66708a; }
+    .step { fill: #ffffff; font-weight: 700; font-size: 14px; }
+  </style>
+  <rect width="720" height="420" rx="16" fill="#eef1f7"/>
+  <!-- window -->
+  <rect x="24" y="24" width="672" height="372" rx="12" fill="#ffffff" stroke="#c9d0de"/>
+  <path d="M24 36a12 12 0 0 1 12-12h648a12 12 0 0 1 12 12v18H24z" fill="#e3e7f0"/>
+  <circle cx="44" cy="39" r="5" fill="#f26b5b"/><circle cx="62" cy="39" r="5" fill="#f5bf4f"/><circle cx="80" cy="39" r="5" fill="#58c76e"/>
+  <rect x="210" y="31" width="300" height="16" rx="8" fill="#ffffff"/>
+  <text x="360" y="43" text-anchor="middle" font-size="10" class="mono muted">claude.ai/settings</text>
+  <!-- sidebar -->
+  <rect x="24" y="54" width="170" height="342" fill="#f6f7fb"/>
+  <text x="44" y="84" font-size="15" font-weight="700">設定</text>
+  <text x="44" y="116" font-size="13" class="muted">一般</text>
+  <text x="44" y="144" font-size="13" class="muted">アカウント</text>
+  <rect x="34" y="156" width="150" height="28" rx="7" fill="#dfe4fb"/>
+  <text x="44" y="175" font-size="13" font-weight="700" fill="#3043c4">機能（Capabilities）</text>
+  <text x="44" y="204" font-size="13" class="muted">コネクタ</text>
+  <text x="44" y="232" font-size="13" class="muted">請求</text>
+  <circle cx="176" cy="170" r="13" fill="#d9487a"/><text x="176" y="175" text-anchor="middle" class="step">1</text>
+  <!-- main -->
+  <text x="222" y="86" font-size="17" font-weight="700">機能</text>
+  <rect x="222" y="102" width="448" height="52" rx="10" fill="#f6f7fb" stroke="#e1e5ee"/>
+  <text x="240" y="125" font-size="13" font-weight="700">コード実行とファイル作成</text>
+  <text x="240" y="143" font-size="11" class="muted">Skills を使うにはオンにします</text>
+  <rect x="610" y="117" width="40" height="22" rx="11" fill="#3a4fd6"/><circle cx="639" cy="128" r="8" fill="#ffffff"/>
+  <circle cx="676" cy="102" r="13" fill="#d9487a"/><text x="676" y="107" text-anchor="middle" class="step">2</text>
+
+  <text x="222" y="186" font-size="15" font-weight="700">Skills</text>
+  <g font-size="13">
+    <rect x="222" y="198" width="448" height="40" rx="8" fill="#ffffff" stroke="#e1e5ee"/>
+    <text x="240" y="223" class="mono">docx</text><text x="320" y="223" font-size="11" class="muted">Word 文書の作成・編集</text>
+    <rect x="610" y="207" width="40" height="22" rx="11" fill="#3a4fd6"/><circle cx="639" cy="218" r="8" fill="#ffffff"/>
+    <rect x="222" y="244" width="448" height="40" rx="8" fill="#ffffff" stroke="#e1e5ee"/>
+    <text x="240" y="269" class="mono">xlsx</text><text x="320" y="269" font-size="11" class="muted">Excel の作成・編集</text>
+    <rect x="610" y="253" width="40" height="22" rx="11" fill="#3a4fd6"/><circle cx="639" cy="264" r="8" fill="#ffffff"/>
+    <rect x="222" y="290" width="448" height="40" rx="8" fill="#ffffff" stroke="#e1e5ee"/>
+    <text x="240" y="315" class="mono">my-report</text><text x="320" y="315" font-size="11" class="muted">自作スキル</text>
+    <rect x="610" y="299" width="40" height="22" rx="11" fill="#cbd1de"/><circle cx="621" cy="310" r="8" fill="#ffffff"/>
+  </g>
+  <circle cx="676" cy="198" r="13" fill="#d9487a"/><text x="676" y="203" text-anchor="middle" class="step">3</text>
+  <rect x="222" y="344" width="180" height="34" rx="8" fill="#ffffff" stroke="#3a4fd6" stroke-width="1.5"/>
+  <text x="312" y="366" text-anchor="middle" font-size="13" font-weight="700" fill="#3043c4">＋ スキルをアップロード</text>
+  <circle cx="404" cy="344" r="13" fill="#d9487a"/><text x="404" y="349" text-anchor="middle" class="step">4</text>
+  <text x="420" y="366" font-size="11" class="muted">SKILL.md を含むフォルダを ZIP で</text>
+  <text x="684" y="390" text-anchor="end" font-size="10" class="muted">イメージ図・実際の表示名は異なる場合があります</text>
+</svg>

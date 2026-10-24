@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" height="340">
+  <title id="t">Claude Code でプラグインからスキルを追加する</title>
+  <desc id="d">/plugin marketplace add anthropics/claude-plugins-official でマーケットプレイスを追加し、/plugin install skill-creator@claude-plugins-official でインストール。/skills で一覧を確認できる。</desc>
+  <style>
+    text { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; fill: #e6e9f5; }
+    .p { fill: #8fb4ff; } .ok { fill: #7fd69a; } .muted { fill: #8a93ad; } .ns { fill: #f2c27b; }
+  </style>
+  <rect width="720" height="340" rx="16" fill="#eef1f7"/>
+  <rect x="24" y="24" width="672" height="292" rx="12" fill="#151a2b"/>
+  <circle cx="46" cy="44" r="5" fill="#f26b5b"/><circle cx="64" cy="44" r="5" fill="#f5bf4f"/><circle cx="82" cy="44" r="5" fill="#58c76e"/>
+  <text x="360" y="48" text-anchor="middle" font-size="12" class="muted">claude — your-project</text>
+  <text x="48" y="92"><tspan class="p">&gt;</tspan> /plugin marketplace add anthropics/claude-plugins-official</text>
+  <text x="48" y="116" class="ok">  ✓ マーケットプレイスを追加しました</text>
+  <text x="48" y="156"><tspan class="p">&gt;</tspan> /plugin install skill-creator@claude-plugins-official</text>
+  <text x="48" y="180" class="ok">  ✓ skill-creator をインストールしました</text>
+  <text x="48" y="220"><tspan class="p">&gt;</tspan> /skills</text>
+  <text x="48" y="244" class="muted">  利用できるスキル</text>
+  <text x="48" y="268">  • <tspan class="ns">skill-creator:</tspan>skill-creator</text>
+  <text x="48" y="292">  • review <tspan class="muted">(.claude/skills)</tspan></text>
+</svg>

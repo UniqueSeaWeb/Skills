@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" width="720" height="380">
+  <title id="t">SKILL.md の書き方</title>
+  <desc id="d">先頭の --- で囲んだ部分に name（呼び出し名）と description（いつ使うか）を書き、その下に Markdown で手順を書く。Claude は description を見て自動で読み込むかを判断する。</desc>
+  <style>
+    text { font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif; fill: #1b2236; }
+    .code, .code text { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; fill: #e6e9f5; }
+    .code .k { fill: #8fb4ff; } .code .s { fill: #f2c27b; } .code .c { fill: #8a93ad; } .code .h { fill: #f28fb0; font-weight: 700; }
+    .note { font-size: 12.5px; }
+    .muted { fill: #66708a; }
+  </style>
+  <rect width="720" height="380" rx="16" fill="#eef1f7"/>
+  <rect x="24" y="24" width="420" height="332" rx="12" fill="#1b2236"/>
+  <rect x="24" y="24" width="420" height="34" rx="12" fill="#2a3350"/>
+  <rect x="24" y="46" width="420" height="12" fill="#2a3350"/>
+  <text x="44" y="46" font-size="12" class="code" style="fill:#c4cbe0">.claude/skills/review/SKILL.md</text>
+  <g class="code">
+    <text x="44" y="90" class="c">---</text>
+    <text x="44" y="114"><tspan class="k">name</tspan>: review</text>
+    <text x="44" y="138"><tspan class="k">description</tspan>: <tspan class="s">PRの変更をチームの</tspan></text>
+    <text x="44" y="160"><tspan class="s">  観点でレビューする。「レビューして」</tspan></text>
+    <text x="44" y="182"><tspan class="s">  と頼まれたときに使う。</tspan></text>
+    <text x="44" y="206" class="c">---</text>
+    <text x="44" y="240" class="h"># レビュー手順</text>
+    <text x="44" y="266">1. git diff で変更を確認する</text>
+    <text x="44" y="290">2. セキュリティと命名をチェック</text>
+    <text x="44" y="314">3. 指摘を重要度順にまとめる</text>
+  </g>
+  <!-- callouts -->
+  <path d="M444 114 H474" stroke="#3a4fd6" stroke-width="2"/>
+  <rect x="474" y="92" width="222" height="44" rx="8" fill="#ffffff" stroke="#3a4fd6"/>
+  <text x="486" y="111" class="note" font-weight="700">name</text>
+  <text x="486" y="128" class="note muted">/review で呼び出せる名前</text>
+  <path d="M444 160 H474" stroke="#d9487a" stroke-width="2"/>
+  <rect x="474" y="144" width="222" height="62" rx="8" fill="#ffffff" stroke="#d9487a"/>
+  <text x="486" y="163" class="note" font-weight="700">description（最重要）</text>
+  <text x="486" y="180" class="note muted">何をするか・いつ使うか。</text>
+  <text x="486" y="197" class="note muted">Claude が自動で使う判断材料</text>
+  <path d="M444 278 H474" stroke="#2e9a5c" stroke-width="2"/>
+  <rect x="474" y="252" width="222" height="52" rx="8" fill="#ffffff" stroke="#2e9a5c"/>
+  <text x="486" y="272" class="note" font-weight="700">本文（Markdown）</text>
+  <text x="486" y="290" class="note muted">スキルが動くときの手順・ルール</text>
+</svg>

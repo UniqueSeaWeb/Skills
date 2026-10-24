@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Skill Atlas</title>
+<meta name="description" content="現在このセッションで使える Claude Skills をカテゴリ別に3Dパネルで表示します。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: a rotating ring of category panels (CSS 3D carousel), tabs above, skill detail below */
+:root {
+  --bg: #e9edf4;
+  --bg-deep: #d6dce8;
+  --fg: #172033;
+  --muted: #56617a;
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-edge: rgba(23, 32, 51, 0.14);
+  --tile: rgba(255, 255, 255, 0.9);
+  --tile-hover: #ffffff;
+  --accent: #3a4fd6;
+  --focus: #3a4fd6;
+  --shadow: rgba(23, 32, 51, 0.18);
+  --font-display: "Bricolage Grotesque", "Zen Kaku Gothic New", system-ui, sans-serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --panel-w: 320px;
+  --panel-h: 460px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11152a; --bg-deep: #090c1a; --fg: #e6e9f5; --muted: #9aa3c2;
+    --panel: rgba(30, 37, 70, 0.72); --panel-edge: rgba(200, 210, 255, 0.16);
+    --tile: rgba(255, 255, 255, 0.06); --tile-hover: rgba(255, 255, 255, 0.13);
+    --accent: #8f9dff; --focus: #b4bdff; --shadow: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11152a; --bg-deep: #090c1a; --fg: #e6e9f5; --muted: #9aa3c2;
+  --panel: rgba(30, 37, 70, 0.72); --panel-edge: rgba(200, 210, 255, 0.16);
+  --tile: rgba(255, 255, 255, 0.06); --tile-hover: rgba(255, 255, 255, 0.13);
+  --accent: #8f9dff; --focus: #b4bdff; --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  background: radial-gradient(ellipse at 50% 30%, var(--bg) 0%, var(--bg-deep) 100%) fixed, var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 20px;
+}
+
+header { display: grid; gap: 6px; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); margin: 0;
+}
+h1 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(30px, 5vw, 46px); line-height: 1.05; margin: 0;
+  text-wrap: balance; letter-spacing: -0.01em;
+}
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.stats {
+  display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 4px 0 0; padding: 0; list-style: none;
+  font-family: var(--font-mono); font-size: 13px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.stats b { color: var(--fg); font-weight: 600; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.search { position: relative; flex: 1 1 240px; min-width: 0; }
+.search input {
+  width: 100%; font: inherit; color: var(--fg); background: var(--tile);
+  border: 1px solid var(--panel-edge); border-radius: 10px; padding: 9px 12px;
+}
+.search input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab {
+  font: 500 13px/1 var(--font-body); color: var(--fg);
+  background: var(--tile); border: 1px solid var(--panel-edge);
+  border-radius: 999px; padding: 7px 12px 7px 10px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tab .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.tab .n { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tab:hover { background: var(--tile-hover); }
+.tab[aria-selected="true"] { border-color: var(--c); background: var(--tile-hover); box-shadow: inset 0 0 0 1px var(--c); }
+.tab:focus-visible, .nav:focus-visible, .skill:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tab.nomatch { opacity: 0.4; }
+
+/* 3D stage */
+.stage-wrap { position: relative; overflow-x: clip; }
+.stage {
+  position: relative;
+  height: calc(var(--panel-h) + 60px);
+  perspective: 1500px;
+  perspective-origin: 50% 35%;
+  touch-action: pan-y;
+  user-select: none;
+}
+.tilt {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(.2,.7,.2,1);
+}
+.ring {
+  position: absolute; left: 50%; top: 20px;
+  width: var(--panel-w); height: var(--panel-h);
+  margin-left: calc(var(--panel-w) / -2);
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(.2,.75,.15,1);
+}
+.panel {
+  position: absolute; inset: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 18px;
+  box-shadow: 0 30px 60px -20px var(--shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 18px 16px 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: opacity 0.6s, filter 0.6s;
+  opacity: 0.5;
+  overflow: hidden;
+}
+.panel::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 5px; background: var(--c);
+}
+.panel.front { opacity: 1; }
+.panel.far { opacity: 0.18; }
+.panel-head { display: grid; gap: 2px; }
+.panel-head .kicker {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--c);
+}
+.panel-head h2 {
+  margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.15;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+}
+.panel-head h2 span { font-family: var(--font-mono); font-size: 13px; font-weight: 400; color: var(--muted); }
+.panel-head p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+.skills {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  align-content: start; overflow-y: auto; min-height: 0;
+}
+.skills li { min-width: 0; }
+.skill {
+  width: 100%; text-align: left; cursor: pointer;
+  font: 500 12px/1.3 var(--font-mono); color: var(--fg);
+  background: var(--tile); border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--c);
+  border-radius: 8px; padding: 7px 8px;
+  overflow-wrap: anywhere;
+  transition: transform 0.18s, background 0.18s, opacity 0.2s;
+}
+.skill:hover { background: var(--tile-hover); transform: translateZ(14px) translateY(-1px); }
+.skill[aria-pressed="true"] { background: var(--c); color: #fff; border-color: var(--c); }
+.skill.dim { opacity: 0.25; }
+
+.nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--panel-edge); background: var(--tile-hover); color: var(--fg);
+  font: 600 20px/1 var(--font-mono); cursor: pointer;
+  box-shadow: 0 6px 18px -6px var(--shadow);
+}
+.nav.prev { left: 0; }
+.nav.next { right: 0; }
+
+.hint { margin: 0; text-align: center; font-size: 12px; color: var(--muted); }
+
+/* Detail */
+.detail {
+  background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 14px;
+  padding: 18px 20px; display: grid; gap: 8px;
+  border-top: 4px solid var(--c, var(--accent));
+}
+.detail h3 { margin: 0; font-family: var(--font-mono); font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.detail .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--panel-edge); font-size: 12px; color: var(--fg);
+}
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.detail p { margin: 0; max-width: 68ch; }
+.detail code {
+  font-family: var(--font-mono); font-size: 13px; padding: 2px 6px; border-radius: 6px;
+  background: var(--tile); border: 1px solid var(--panel-edge);
+}
+.empty { color: var(--muted); }
+
+/* Setup guide */
+.setup { display: grid; gap: 18px; margin-top: 12px; }
+.setup > h2 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3.6vw, 32px);
+  margin: 0; text-wrap: balance;
+}
+.setup > p { margin: 0; color: var(--muted); max-width: 64ch; }
+.route {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px 28px;
+  align-items: start; padding-block: 22px; border-top: 1px solid var(--panel-edge);
+}
+.route-text { display: grid; gap: 10px; min-width: 0; }
+.route h3 { margin: 0; font-size: 19px; line-height: 1.35; text-wrap: balance; }
+.route .who {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--c); margin: 0;
+}
+.route ol { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+.route p { margin: 0; }
+.route code, .note code {
+  font-family: var(--font-mono); font-size: 12.5px; padding: 1px 5px; border-radius: 5px;
+  background: var(--tile); border: 1px solid var(--panel-edge); overflow-wrap: anywhere;
+}
+.route figure { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.route img {
+  width: 100%; height: auto; max-width: 100%; display: block; border-radius: 12px;
+  box-shadow: 0 18px 40px -22px var(--shadow);
+}
+.route figcaption { font-size: 12px; color: var(--muted); }
+.note {
+  margin: 0; font-size: 13px; color: var(--muted); padding: 10px 14px; border-radius: 10px;
+  background: var(--tile); border: 1px solid var(--panel-edge);
+}
+.r-web { --c: #d9487a; } .r-cc { --c: #2f6fd6; } .r-md { --c: #2e9a5c; } .r-plugin { --c: #8a4fe0; }
+@media (max-width: 760px) { .route { grid-template-columns: minmax(0, 1fr); } }
+
+footer { font-size: 12px; color: var(--muted); display: grid; gap: 6px; }
+footer ul { margin: 0; padding-left: 1.2em; }
+footer a { color: var(--accent); }
+
+@media (max-width: 560px) {
+  :root { --panel-w: 280px; --panel-h: 480px; }
+  .skills { grid-template-columns: 1fr; }
+  .nav { width: 38px; height: 38px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring, .tilt, .panel, .skill, .tab { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" lang="ja">
+  <header>
+    <p class="eyebrow">Claude Skills · 2026-10-23 時点</p>
+    <h1>Skill Atlas</h1>
+    <p class="lede">このセッションで有効になっている Skills をカテゴリごとのパネルにまとめました。パネルを回して、スキルを選ぶと内容と呼び出し名が表示されます。</p>
+    <ul class="stats" id="stats"></ul>
+  </header>
+
+  <div class="controls">
+    <div class="search">
+      <label for="q" class="visually-hidden">スキルを検索</label>
+      <input id="q" type="search" placeholder="スキル名・説明で検索（例: SQL, Figma, レビュー）" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="カテゴリ" id="tabs"></div>
+
+  <section class="stage-wrap" aria-label="カテゴリパネル（3D）">
+    <button class="nav prev" type="button" id="prev" aria-label="前のカテゴリ">‹</button>
+    <div class="stage" id="stage">
+      <div class="tilt" id="tilt">
+        <div class="ring" id="ring"></div>
+      </div>
+    </div>
+    <button class="nav next" type="button" id="next" aria-label="次のカテゴリ">›</button>
+  </section>
+  <p class="hint">← → キー・スワイプ・ドラッグでも回せます</p>
+
+  <section class="detail" id="detail" aria-live="polite" aria-label="スキル詳細">
+    <p class="empty">パネルのスキルを選ぶと、ここに説明が表示されます。</p>
+  </section>
+
+  <section class="setup" id="setup" aria-labelledby="setup-title">
+    <h2 id="setup-title">スキルのセットアップ方法</h2>
+    <p>使う場所によって追加方法が3通りあります。図はイメージで、実際のメニュー名は変わることがあります。</p>
+
+    <div class="route r-web">
+      <div class="route-text">
+        <p class="who">Claude.ai・デスクトップアプリ</p>
+        <h3>設定画面でオンにする・ZIPをアップロードする</h3>
+        <ol>
+          <li>左下のメニューから <strong>設定</strong> を開き、<strong>機能（Capabilities）</strong> を選びます。</li>
+          <li><strong>コード実行とファイル作成</strong> をオンにします。Skills はこの機能を使って動きます。</li>
+          <li><strong>Skills</strong> 欄で、使いたいスキルのスイッチをオンにします。</li>
+          <li>自作スキルは <code>SKILL.md</code> を含むフォルダを ZIP にして <strong>スキルをアップロード</strong> から追加します。</li>
+        </ol>
+        <p class="note">Team・Enterprise プランでは、管理者が組織の設定で Skills を有効にしている必要があります。</p>
+      </div>
+      <figure>
+        <img src="images/setup-claude-ai.svg" width="720" height="420" alt="設定画面の図。左のメニューで「機能」を選び、コード実行とファイル作成をオンにし、Skills 欄でスキルのスイッチをオンにし、「スキルをアップロード」ボタンから ZIP を追加する4つの手順に番号が付いている。">
+        <figcaption>Claude.ai の設定画面（イメージ図）</figcaption>
+      </figure>
+    </div>
+
+    <div class="route r-cc">
+      <div class="route-text">
+        <p class="who">Claude Code・自作スキル</p>
+        <h3>決まったフォルダに SKILL.md を置く</h3>
+        <ol>
+          <li>自分だけで使うなら <code>~/.claude/skills/スキル名/</code>、チームで共有するならリポジトリの <code>.claude/skills/スキル名/</code> を作ります。</li>
+          <li>その中に <code>SKILL.md</code> を作ります。補助のテンプレートやスクリプトも同じフォルダに置けます。</li>
+          <li>プロジェクト用はコミットしてプッシュすれば、チームの全員が使えるようになります。</li>
+        </ol>
+      </div>
+      <figure>
+        <img src="images/setup-folders.svg" width="720" height="360" alt="フォルダ構成の図。左は個人用で ~/.claude/skills/my-report/SKILL.md、右はプロジェクト用で your-repo/.claude/skills/review/SKILL.md と scripts フォルダ。">
+        <figcaption>個人用とプロジェクト用の置き場所</figcaption>
+      </figure>
+    </div>
+
+    <div class="route r-md">
+      <div class="route-text">
+        <p class="who">SKILL.md の書き方</p>
+        <h3>name と description、その下に手順</h3>
+        <ol>
+          <li>先頭の <code>---</code> で囲んだ部分に <code>name</code> と <code>description</code> を書きます。</li>
+          <li><code>description</code> には「何をするか」と「いつ使うか」を具体的に書きます。Claude はこれを見て、頼まれた内容に合うスキルを自動で読み込みます。</li>
+          <li>下の本文に、スキルが動くときの手順やルールを Markdown で書きます。</li>
+        </ol>
+        <p class="note">Claude.ai にアップロードする場合、使える項目は <code>name</code>・<code>description</code>・<code>license</code>・<code>compatibility</code>・<code>metadata</code>・<code>allowed-tools</code> の6つです。</p>
+      </div>
+      <figure>
+        <img src="images/setup-skill-md.svg" width="720" height="380" alt="SKILL.md の例。先頭に name: review と description を書き、その下に「# レビュー手順」と3つの手順。右側の吹き出しで、name は呼び出し名、description は自動で使う判断材料、本文は手順だと説明している。">
+        <figcaption>SKILL.md の構成</figcaption>
+      </figure>
+    </div>
+
+    <div class="route r-plugin">
+      <div class="route-text">
+        <p class="who">Claude Code・配布されているスキル</p>
+        <h3>プラグインとしてインストールする</h3>
+        <ol>
+          <li>マーケットプレイスを追加します: <code>/plugin marketplace add anthropics/claude-plugins-official</code></li>
+          <li>プラグインを入れます: <code>/plugin install skill-creator@claude-plugins-official</code></li>
+          <li><code>/skills</code> で使えるスキルの一覧を確認します。</li>
+          <li><code>/スキル名</code> で直接呼ぶか、内容に合う依頼をすると自動で使われます。プラグインのスキルは <code>/プラグイン名:スキル名</code> の形になります。</li>
+        </ol>
+        <p class="note">このページのスキル一覧にある <code>design:</code> や <code>data:</code> は、このプラグイン名です。</p>
+      </div>
+      <figure>
+        <img src="images/setup-plugin.svg" width="720" height="340" alt="ターミナルの図。/plugin marketplace add と /plugin install を実行して成功し、/skills で skill-creator と review が一覧に表示されている。">
+        <figcaption>プラグインの追加と一覧の確認</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <footer>
+    <p>スキル一覧の出典: このClaude Codeセッションに読み込まれているスキル（プラグイン: design / data / engineering / figma / cloudflare / frontend-design / modern-web-guidance / anthropic-skills、および組み込みスキル）。説明は要約です。</p>
+    <p>セットアップ手順の出典:</p>
+    <ul>
+      <li><a href="https://code.claude.com/docs/en/skills">Claude Code Docs: Skills</a></li>
+      <li><a href="https://support.claude.com/en/articles/12512180">Claude ヘルプセンター: Skills の使い方</a></li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  document.documentElement.lang = "ja";
+
+  const CATS = [
+    { id: "design", name: "デザイン", en: "Design", c: "#d9487a", note: "UX・リサーチ・アクセシビリティ", skills: [
+      ["design:accessibility-review", "WCAG 2.1 AA に沿ったアクセシビリティ監査。コントラスト、キーボード操作、タップ領域、スクリーンリーダー挙動を確認。"],
+      ["design:design-critique", "使いやすさ・情報の階層・一貫性について構造化したデザインフィードバック。"],
+      ["design:design-handoff", "レイアウト、トークン、コンポーネント、状態、レスポンシブ、アニメーションを含む開発者向け仕様書を作成。"],
+      ["design:design-system", "デザインシステムの監査・ドキュメント化・拡張。命名の揺れやハードコード値を検出。"],
+      ["design:research-synthesis", "インタビューやアンケート、サポート問い合わせからテーマ・インサイト・提案を抽出。"],
+      ["design:user-research", "ユーザーリサーチの計画、インタビューガイド、ユーザビリティテスト、アンケート設計。"],
+      ["design:ux-copy", "マイクロコピー、エラーメッセージ、空状態、CTAの作成とレビュー。"],
+      ["frontend-design:frontend-design", "テンプレート的でない、意図のあるUIビジュアルの方向性・タイポグラフィの指針。"]
+    ]},
+    { id: "data", name: "データ", en: "Data", c: "#1f8a9e", note: "分析・SQL・可視化", skills: [
+      ["data:analyze", "単一指標の確認から、トレンドの要因分析、正式なレポートまでデータの質問に回答。"],
+      ["data:build-dashboard", "チャート・フィルタ・表を備えた単体HTMLダッシュボードを作成。"],
+      ["data:create-viz", "Python で出版品質のグラフを作成。チャート種別の選定も。"],
+      ["data:data-context-extractor", "自社データウェアハウス固有の知識（用語・指標定義・クエリ例）をスキル化。"],
+      ["data:data-visualization", "matplotlib / seaborn / plotly による可視化と、色・アクセシビリティの原則。"],
+      ["data:explore-data", "データセットのプロファイリング。欠損率・分布・重複などの品質確認。"],
+      ["data:sql-queries", "Snowflake・BigQuery・Databricks・PostgreSQL などの方言で正確かつ高速なSQL。"],
+      ["data:statistical-analysis", "記述統計、トレンド、外れ値検出、仮説検定、相関の解釈。"],
+      ["data:validate-data", "共有前の分析QA。手法・計算・バイアスのチェック。"],
+      ["data:write-query", "自然言語の要望を、方言に合わせた最適化済みSQLに変換。"],
+      ["dataviz", "あらゆるチャート作成前に読む可視化の設計システム。配色の検証ツール付き。"]
+    ]},
+    { id: "figma", name: "Figma", en: "Figma", c: "#8a4fe0", note: "デザイン↔コード連携", skills: [
+      ["figma:figma-use", "use_figma ツールを使う前に必須。ノード作成・変数・コンポーネント操作の基礎。"],
+      ["figma:figma-design-to-code", "Figma デザインをコードとして実装する手順。get_design_context の前提。"],
+      ["figma:figma-generate-design", "コードや説明から、デザインシステムを使ってFigmaに画面を構築。"],
+      ["figma:figma-generate-library", "コードベースから変数・コンポーネント・テーマを含むデザインシステムをFigmaに構築。"],
+      ["figma:figma-code-connect", "Figma コンポーネントとコードを対応付ける Code Connect ファイルを作成・更新。"],
+      ["figma:figma-code-workflows", "ローカルのHTMLやプロジェクトをFigmaのDesign / Code Layer / Code に取り込み。"],
+      ["figma:figma-create-new-file", "新しい Figma Design / FigJam / Slides ファイルを作成。"],
+      ["figma:figma-generate-diagram", "フローチャート、シーケンス図、ER図などを FigJam に生成。"],
+      ["figma:figma-generative-plugins", "再利用できる生成系 Figma プラグインを作成・更新。"],
+      ["figma:figma-implement-motion", "Figma のモーション・アニメーションを実装コードに変換。"],
+      ["figma:figma-shaders", "シェーダーエフェクトやプロシージャルな塗りを作成。"],
+      ["figma:figma-spec", "PRD・ブリーフ・RFC などの Figma スペックを作成・編集・レビュー。"],
+      ["figma:figma-swiftui", "SwiftUI と Figma の双方向変換。"],
+      ["figma:figma-use-figjam", "FigJam 上で use_figma を使うための指針。"],
+      ["figma:figma-use-motion", "キーフレーム・イージングなどアニメーション操作の指針。"],
+      ["figma:figma-use-slides", "Figma Slides 上で use_figma を使うための指針。"]
+    ]},
+    { id: "eng", name: "エンジニアリング", en: "Engineering", c: "#2f6fd6", note: "設計・レビュー・運用", skills: [
+      ["engineering:architecture", "技術選定などのアーキテクチャ決定記録（ADR）を作成・評価。"],
+      ["engineering:code-review", "セキュリティ・性能・正しさの観点でコード変更をレビュー。"],
+      ["engineering:debug", "再現→切り分け→原因特定→修正の構造化デバッグ。"],
+      ["engineering:deploy-checklist", "マイグレーションやフィーチャーフラグを含むデプロイ前チェックリスト。"],
+      ["engineering:documentation", "README、API ドキュメント、ランブックなどの技術文書。"],
+      ["engineering:incident-response", "インシデントのトリアージ、状況共有、ポストモーテム。"],
+      ["engineering:standup", "最近のコミットやPRからスタンドアップの報告を作成。"],
+      ["engineering:system-design", "システム・サービス・API・データモデルの設計。"],
+      ["engineering:tech-debt", "技術的負債の洗い出しと優先順位付け。"],
+      ["engineering:testing-strategy", "テスト戦略・テスト計画の設計。"]
+    ]},
+    { id: "web", name: "Web・フロントエンド", en: "Web Platform", c: "#e07a1f", note: "最新Web標準・拡張機能", skills: [
+      ["modern-web-guidance:modern-web-guidance", "HTML/CSS/クライアントJSの最新ベストプラクティスを検索。ダイアログ、View Transitions、CWV など。"],
+      ["modern-web-guidance:chrome-extensions", "Manifest V3 準拠の Chrome 拡張機能の作成と公開。"],
+      ["cloudflare:web-perf", "Core Web Vitals や Lighthouse スコアの監査と改善。"]
+    ]},
+    { id: "cf", name: "Cloudflare", en: "Cloudflare", c: "#f2802b", note: "Workers・セキュリティ・エッジ", skills: [
+      ["cloudflare:cloudflare", "用途に合う Cloudflare 製品の選定とアーキテクチャ。"],
+      ["cloudflare:workers-best-practices", "本番運用の Workers のベストプラクティス。"],
+      ["cloudflare:wrangler", "Wrangler CLI の実行・設定・トラブルシュート。"],
+      ["cloudflare:durable-objects", "永続状態と協調処理のための Durable Objects。"],
+      ["cloudflare:agents-sdk", "Cloudflare Agents SDK アプリの構築・デバッグ。"],
+      ["cloudflare:nextjs-on-cloudflare", "vinext で Next.js を Workers に構築・移行・デプロイ。"],
+      ["cloudflare:cloudflare-email-service", "Email Sending / Email Routing の実装と配信設定。"],
+      ["cloudflare:cloudflare-one", "Cloudflare One（ゼロトラスト / SASE）の設計・設定。"],
+      ["cloudflare:cloudflare-one-migrations", "既存VPN・SWG・SASEからの移行計画。"],
+      ["cloudflare:turnstile-spin", "Turnstile ボット検証の導入とサーバー側 Siteverify。"],
+      ["cloudflare:sandbox-stable", "安定版 @cloudflare/sandbox でのアプリ構築。"],
+      ["cloudflare:sandbox-next", "プレビュー版 @cloudflare/sandbox@next でのアプリ構築。"],
+      ["cloudflare:sandbox-migrate-to-next", "Sandbox アプリを安定版から @next へ移行。"]
+    ]},
+    { id: "docs", name: "ドキュメント・Office", en: "Documents", c: "#2e9a5c", note: "Word・Excel・PDF・スライド", skills: [
+      ["anthropic-skills:docs", "Claude Docs のドキュメント作成・編集。"],
+      ["anthropic-skills:docx", "Word（.docx）ファイルの作成・編集。"],
+      ["anthropic-skills:xlsx", "Excel（.xlsx）ファイルの作成・編集。"],
+      ["anthropic-skills:pptx", "PowerPoint（.pptx）ファイルの作成・編集。"],
+      ["anthropic-skills:pdf", "PDF の読み取り・作成・加工。"],
+      ["anthropic-skills:google-workspace", "Google ドキュメント・スプレッドシート等との連携。"]
+    ]},
+    { id: "research", name: "リサーチ・自動操作", en: "Research & Browser", c: "#b8902a", note: "調査・ブラウザ・PC操作", skills: [
+      ["anthropic-skills:deep-research", "複数の情報源を調べ、比較・分析した長文レポートを作成。"],
+      ["anthropic-skills:built-in-browser", "デスクトップアプリ内蔵ブラウザの使い方。"],
+      ["anthropic-skills:chrome-browser", "Claude in Chrome 拡張機能でのブラウザ操作。"],
+      ["anthropic-skills:computer-use", "コンピューター操作（画面のクリック・入力）。"],
+      ["anthropic-skills:morning", "朝のブリーフィング作成。"],
+      ["anthropic-skills:import-memory", "他サービスのメモリ・設定を取り込み。"],
+      ["anthropic-skills:skill-creator", "新しいスキルの作成・改善。"]
+    ]},
+    { id: "artifact", name: "アーティファクト", en: "Artifacts", c: "#c2416b", note: "公開ページの設計・機能", skills: [
+      ["artifact-design", "アーティファクト作成前に読むデザインと基本ルール。"],
+      ["artifact-diagramming", "仕組みを正しく伝える図の描き方と、SVG の扱い。"],
+      ["artifact-capabilities", "ライブデータ、共有状態、ファイル保存などページに付与できる機能。"]
+    ]},
+    { id: "cc", name: "Claude Code 本体", en: "Claude Code", c: "#5b6478", note: "設定・ワークフロー・レビュー", skills: [
+      ["init", "コードベースを解析して CLAUDE.md を作成。"],
+      ["code-review", "現在の差分やPRの不具合を、指定した深さでレビュー。"],
+      ["simplify", "変更コードの重複・冗長さ・効率を整理して修正。"],
+      ["security-review", "現在のブランチの変更のセキュリティレビュー。"],
+      ["run", "アプリを起動・操作して変更の動作を確認。"],
+      ["loop", "プロンプトやコマンドを一定間隔で繰り返し実行。"],
+      ["claude-api", "Claude API / Anthropic SDK のリファレンス（モデル、料金、ツール利用など）。"],
+      ["update-config", "settings.json でフック・権限・環境変数を設定。"],
+      ["fewer-permission-prompts", "よく使う読み取り系コマンドを許可リストに追加して確認を減らす。"],
+      ["keybindings-help", "キーボードショートカットのカスタマイズ。"],
+      ["plugin-authoring", "パネル・ステータスライン・スラッシュコマンド・フックなどの改造（mod）作成。"],
+      ["session-start-hook", "クラウドセッション用の SessionStart フックを作成。"]
+    ]}
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const ring = $("ring"), tilt = $("tilt"), stage = $("stage"), tabsEl = $("tabs"), detail = $("detail");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const N = CATS.length, STEP = 360 / N;
+  let idx = 0, turn = 0, radius = 0, selected = null;
+
+  const total = CATS.reduce((s, c) => s + c.skills.length, 0);
+  const plugins = new Set(CATS.flatMap(c => c.skills.map(s => s[0].includes(":") ? s[0].split(":")[0] : "組み込み")));
+  $("stats").innerHTML =
+    `<li><b>${total}</b> スキル</li><li><b>${N}</b> カテゴリ</li><li><b>${plugins.size}</b> 提供元</li>`;
+
+  const tabs = [], panels = [], tiles = [];
+  CATS.forEach((cat, i) => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "tab";
+    tab.id = "tab-" + cat.id;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", "panel-" + cat.id);
+    tab.style.setProperty("--c", cat.c);
+    tab.innerHTML = `<span class="dot" aria-hidden="true"></span>${cat.name}<span class="n">${cat.skills.length}</span>`;
+    tab.addEventListener("click", () => go(i));
+    tabsEl.append(tab);
+    tabs.push(tab);
+
+    const p = document.createElement("article");
+    p.className = "panel";
+    p.id = "panel-" + cat.id;
+    p.setAttribute("role", "tabpanel");
+    p.setAttribute("aria-labelledby", "tab-" + cat.id);
+    p.style.setProperty("--c", cat.c);
+    p.innerHTML = `<div class="panel-head">
+        <span class="kicker">${cat.en}</span>
+        <h2>${cat.name}<span>${cat.skills.length}</span></h2>
+        <p>${cat.note}</p>
+      </div>`;
+    const ul = document.createElement("ul");
+    ul.className = "skills";
+    cat.skills.forEach(([name, desc]) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "skill";
+      b.setAttribute("aria-pressed", "false");
+      b.textContent = name.includes(":") ? name.split(":")[1] : name;
+      b.title = name;
+      b.addEventListener("click", () => show(cat, name, desc, b));
+      li.append(b);
+      ul.append(li);
+      tiles.push({ el: b, cat: i, hay: (name + " " + desc).toLowerCase() });
+    });
+    p.append(ul);
+    ring.append(p);
+    panels.push(p);
+  });
+
+  function layout() {
+    const w = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--panel-w")) || 320;
+    radius = Math.round((w / 2) / Math.tan(Math.PI / N) + 30);
+    panels.forEach((p, i) => { p.style.transform = `rotateY(${i * STEP}deg) translateZ(${radius}px)`; });
+    spin();
+  }
+
+  function spin() {
+    ring.style.transform = `translateZ(${-radius}px) rotateY(${-turn * STEP}deg)`;
+    panels.forEach((p, i) => {
+      const d = Math.min((i - idx + N) % N, (idx - i + N) % N);
+      p.classList.toggle("front", d === 0);
+      p.classList.toggle("far", d > 2);
+      p.inert = d !== 0;
+      p.setAttribute("aria-hidden", d === 0 ? "false" : "true");
+    });
+    tabs.forEach((t, i) => {
+      t.setAttribute("aria-selected", i === idx ? "true" : "false");
+      t.tabIndex = i === idx ? 0 : -1;
+    });
+  }
+
+  function go(i) {
+    const target = ((i % N) + N) % N;
+    let delta = target - idx;
+    if (delta > N / 2) delta -= N;
+    if (delta < -N / 2) delta += N;
+    turn += delta;
+    idx = target;
+    spin();
+  }
+
+  function show(cat, name, desc, btn) {
+    if (selected) selected.setAttribute("aria-pressed", "false");
+    selected = btn;
+    btn.setAttribute("aria-pressed", "true");
+    detail.style.setProperty("--c", cat.c);
+    const src = name.includes(":") ? name.split(":")[0] + " プラグイン" : "組み込みスキル";
+    detail.innerHTML = "";
+    const h = document.createElement("h3"); h.textContent = name;
+    const meta = document.createElement("div"); meta.className = "meta";
+    meta.innerHTML = `<span class="chip" style="--c:${cat.c}"><span class="dot" aria-hidden="true"></span>${cat.name}</span><span>${src}</span>`;
+    const p = document.createElement("p"); p.textContent = desc;
+    const call = document.createElement("p");
+    call.innerHTML = `呼び出し例: <code></code>（または内容に応じて自動で読み込まれます）`;
+    call.querySelector("code").textContent = "/" + name;
+    detail.append(h, meta, p, call);
+  }
+
+  // search
+  $("q").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const counts = new Array(N).fill(0);
+    tiles.forEach(t => {
+      const hit = !q || t.hay.includes(q);
+      t.el.classList.toggle("dim", !hit);
+      if (hit) counts[t.cat]++;
+    });
+    tabs.forEach((t, i) => {
+      t.classList.toggle("nomatch", q && counts[i] === 0);
+      t.querySelector(".n").textContent = q ? `${counts[i]}/${CATS[i].skills.length}` : CATS[i].skills.length;
+    });
+    if (q && counts[idx] === 0) {
+      const first = counts.findIndex(n => n > 0);
+      if (first >= 0) go(first);
+    }
+  });
+
+  // controls
+  $("prev").addEventListener("click", () => go(idx - 1));
+  $("next").addEventListener("click", () => go(idx + 1));
+  tabsEl.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      go(idx + (e.key === "ArrowRight" ? 1 : -1));
+      tabs[idx].focus();
+    } else if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      go(e.key === "Home" ? 0 : N - 1);
+      tabs[idx].focus();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, .tabs")) return;
+    if (e.key === "ArrowRight") go(idx + 1);
+    if (e.key === "ArrowLeft") go(idx - 1);
+  });
+
+  // drag / swipe
+  let sx = null, sy = null;
+  stage.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; });
+  stage.addEventListener("pointerup", (e) => {
+    if (sx === null) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(idx + (dx < 0 ? 1 : -1));
+  });
+  stage.addEventListener("pointercancel", () => { sx = null; });
+
+  // subtle parallax tilt
+  stage.addEventListener("pointermove", (e) => {
+    if (reduce.matches || e.pointerType !== "mouse") return;
+    const r = stage.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    tilt.style.transform = `rotateX(${(-y * 6).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg)`;
+  });
+  stage.addEventListener("pointerleave", () => { tilt.style.transform = ""; });
+
+  addEventListener("resize", layout);
+  layout();
+  try {
+    const saved = localStorage.getItem("skill-atlas-cat");
+    const i = CATS.findIndex(c => c.id === saved);
+    if (i > 0) go(i);
+  } catch (_) {}
+  const remember = () => { try { localStorage.setItem("skill-atlas-cat", CATS[idx].id); } catch (_) {} };
+  ring.addEventListener("transitionend", remember);
+  tabsEl.addEventListener("click", remember);
+})();
+</script>
+</body>
+</html>

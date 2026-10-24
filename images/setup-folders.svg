@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" width="720" height="360">
+  <title id="t">Claude Code のスキル置き場所</title>
+  <desc id="d">個人用は ~/.claude/skills/スキル名/SKILL.md、プロジェクト用はリポジトリの .claude/skills/スキル名/SKILL.md に置く。プロジェクト用はコミットするとチームで共有できる。</desc>
+  <style>
+    text { font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif; fill: #1b2236; }
+    .mono, .mono text { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+    .muted { fill: #66708a; }
+    .key { fill: #3043c4; font-weight: 700; }
+  </style>
+  <rect width="720" height="360" rx="16" fill="#eef1f7"/>
+  <!-- personal -->
+  <rect x="24" y="24" width="324" height="312" rx="12" fill="#ffffff" stroke="#c9d0de"/>
+  <rect x="24" y="24" width="324" height="6" rx="3" fill="#2f6fd6"/>
+  <text x="44" y="62" font-size="16" font-weight="700">個人用スキル</text>
+  <text x="44" y="84" font-size="12" class="muted">このPCのすべてのプロジェクトで使える</text>
+  <g class="mono">
+    <text x="44" y="126">~/.claude/</text>
+    <text x="64" y="154">└ skills/</text>
+    <text x="96" y="182">└ my-report/</text>
+    <text x="128" y="210" class="key">└ SKILL.md</text>
+    <text x="128" y="238" class="muted">  template.md</text>
+  </g>
+  <text x="44" y="290" font-size="12" class="muted">例: 自分用の週報フォーマット、</text>
+  <text x="44" y="310" font-size="12" class="muted">いつも使う手順のメモ</text>
+  <!-- project -->
+  <rect x="372" y="24" width="324" height="312" rx="12" fill="#ffffff" stroke="#c9d0de"/>
+  <rect x="372" y="24" width="324" height="6" rx="3" fill="#2e9a5c"/>
+  <text x="392" y="62" font-size="16" font-weight="700">プロジェクト用スキル</text>
+  <text x="392" y="84" font-size="12" class="muted">コミットするとチーム全員で共有できる</text>
+  <g class="mono">
+    <text x="392" y="126">your-repo/</text>
+    <text x="412" y="154">└ .claude/</text>
+    <text x="444" y="182">└ skills/</text>
+    <text x="476" y="210">└ review/</text>
+    <text x="508" y="238" class="key">└ SKILL.md</text>
+    <text x="508" y="266" class="muted">  scripts/</text>
+  </g>
+  <text x="392" y="310" font-size="12" class="muted">例: レビュー観点、デプロイ手順</text>
+</svg>
